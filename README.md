@@ -36,7 +36,8 @@ progress --csv my_report.csv
 # Custom file types
 progress --ext .py,.vue,.ts
 # Exclude folders
-progress --exclude node_modules,dist,build
+progress --exclude node_modules,dist,build  # On top of default exclude folders
+progress --exclude node_modules,dist,build --no-default-exclude  # Ignore default exclude folders
 ```
 
 ## 📦 Example Output

@@ -26,7 +26,7 @@ def collect_progress(root_dir, allowed_exts, excluded_dirs):
     pattern = re.compile(r'@progress\s+(?P<value>\d+%?|\d*\.\d+|done)\s*:?\s*(?P<note>"[^"]*"|\'[^\']*\')?', re.IGNORECASE)
 
     for root, dirs, files in os.walk(root_dir):
-        # 排除指定文件夹
+        # Exclude specified folders
         dirs[:] = [d for d in dirs if d not in excluded_dirs]
 
         for f in files:
@@ -61,7 +61,7 @@ def collect_progress(root_dir, allowed_exts, excluded_dirs):
                         unmarked_files.append(rel_path)
 
             except UnicodeDecodeError:
-                continue  # 跳过非 UTF-8 编码文件
+                continue  # Skip files that are not UTF-8 encoded
 
     return results, unmarked_files
 
@@ -78,7 +78,9 @@ def parse_args():
     parser.add_argument('path', nargs='?', default='.', help='Root directory path (default: current directory)')
     parser.add_argument('--csv', default='progress_report.csv', help='CSV output filename')
     parser.add_argument('--ext', help='Custom file extensions (comma-separated), e.g. .py,.js')
-    parser.add_argument('--exclude', help='Exclude folders (comma-separated), e.g. node_modules,dist,build')
+    parser.add_argument('--exclude', help='Additional excluded folders (comma-separated), e.g. dist,build')
+    parser.add_argument('--no-default-exclude', action='store_true',
+                        help='Do not use default excluded folders like node_modules, .git, etc.')
     parser.add_argument('--verbose', action='store_true', help='Print unmarked file paths')
     return parser.parse_args()
 
@@ -88,11 +90,18 @@ def main():
     args = parse_args()
     path = args.path
 
-    # 处理扩展名
+    # Handle extensions
     extensions = tuple(args.ext.split(',')) if args.ext else DEFAULT_EXTENSIONS
 
-    # 处理排除目录
-    exclude_dirs = set(args.exclude.split(',')) if args.exclude else DEFAULT_EXCLUDE_DIRS
+    # Handle excluded directories
+    if args.no_default_exclude:
+        exclude_dirs = set()
+    else:
+        exclude_dirs = DEFAULT_EXCLUDE_DIRS
+
+    if args.exclude:
+        extra_excludes = set(e.strip() for e in args.exclude.split(','))
+        exclude_dirs = exclude_dirs.union(extra_excludes)
 
     start = time.time()
     data, unmarked_files = collect_progress(path, extensions, exclude_dirs)
