@@ -22,7 +22,7 @@ def clean_note(note):
 
 def collect_progress(root_dir, allowed_exts, excluded_dirs):
     results = []
-    unmarked_count = 0
+    unmarked_files = []
     pattern = re.compile(r'@progress\s+(?P<value>\d+%?|\d*\.\d+|done)\s*:?\s*(?P<note>"[^"]*"|\'[^\']*\')?', re.IGNORECASE)
 
     for root, dirs, files in os.walk(root_dir):
@@ -58,25 +58,12 @@ def collect_progress(root_dir, allowed_exts, excluded_dirs):
                             'note': note
                         })
                     else:
-                        unmarked_count += 1
+                        unmarked_files.append(rel_path)
 
             except UnicodeDecodeError:
                 continue  # 跳过非 UTF-8 编码文件
 
-    return results, unmarked_count
-
-def summarize(results, unmarked_count):
-    valid = [r for r in results if r['progress'] is not None]
-    total_tracked = len(results)
-    completed = sum(1 for r in valid if r['progress'] == 1.0)
-    average = sum(r['progress'] for r in valid) / len(valid) if valid else 0.0
-
-    print("\n📊 Summary")
-    print("-----------")
-    print(f"Marked files: {total_tracked}")
-    print(f"Completed files: {completed}")
-    print(f"Average progress: {average:.2%}")
-    print(f"Unmarked files: {unmarked_count}")
+    return results, unmarked_files
 
 def export_csv(data, output_file):
     with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
@@ -92,6 +79,7 @@ def parse_args():
     parser.add_argument('--csv', default='progress_report.csv', help='CSV output filename')
     parser.add_argument('--ext', help='Custom file extensions (comma-separated), e.g. .py,.js')
     parser.add_argument('--exclude', help='Exclude folders (comma-separated), e.g. node_modules,dist,build')
+    parser.add_argument('--verbose', action='store_true', help='Print unmarked file paths')
     return parser.parse_args()
 
 def main():
@@ -107,10 +95,28 @@ def main():
     exclude_dirs = set(args.exclude.split(',')) if args.exclude else DEFAULT_EXCLUDE_DIRS
 
     start = time.time()
-    data, unmarked_count = collect_progress(path, extensions, exclude_dirs)
+    data, unmarked_files = collect_progress(path, extensions, exclude_dirs)
 
     print(tabulate(data, headers={'file': 'file', 'progress': 'progress', 'note': 'note'}, floatfmt=".2f"))
-    summarize(data, unmarked_count)
+
+    # Summary
+    valid = [r for r in data if r['progress'] is not None]
+    total_tracked = len(data)
+    completed = sum(1 for r in valid if r['progress'] == 1.0)
+    average = sum(r['progress'] for r in valid) / len(valid) if valid else 0.0
+
+    print("\n📊 Summary")
+    print("-----------")
+    print(f"Marked files: {total_tracked}")
+    print(f"Completed files: {completed}")
+    print(f"Average progress: {average:.2%}")
+    print(f"Unmarked files: {len(unmarked_files)}")
+
+    if args.verbose:
+        print("\n📄 Unmarked files:")
+        for file in unmarked_files:
+            print(f"- {file}")
+
     export_csv(data, args.csv)
     print(f"\nElapsed time: {time.time() - start:.2f} seconds")
 
