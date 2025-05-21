@@ -42,7 +42,7 @@ def collect_progress(root_dir, allowed_exts, excluded_dirs):
                     matches = list(pattern.finditer(content))
 
                     if len(matches) > 1:
-                        print(f"[错误] {rel_path} 中有多个 @progress 标记，跳过处理！")
+                        print(f"[Error] Multiple @progress annotations in {rel_path}, skipping!")
                         continue
                     elif len(matches) == 1:
                         match = matches[0]
@@ -71,12 +71,12 @@ def summarize(results, unmarked_count):
     completed = sum(1 for r in valid if r['progress'] == 1.0)
     average = sum(r['progress'] for r in valid) / len(valid) if valid else 0.0
 
-    print("\n📊 汇总信息")
+    print("\n📊 Summary")
     print("-----------")
-    print(f"有标记的文件数：{total_tracked}")
-    print(f"已完成的文件数：{completed}")
-    print(f"平均完成度：{average:.2%}")
-    print(f"未标记文件数：{unmarked_count}")
+    print(f"Marked files: {total_tracked}")
+    print(f"Completed files: {completed}")
+    print(f"Average progress: {average:.2%}")
+    print(f"Unmarked files: {unmarked_count}")
 
 def export_csv(data, output_file):
     with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
@@ -84,14 +84,14 @@ def export_csv(data, output_file):
         writer.writeheader()
         for row in data:
             writer.writerow(row)
-    print(f"\n✅ 已导出 CSV 文件：{output_file}")
+    print(f"\n✅ CSV file exported: {output_file}")
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="统计代码中的 @progress 注释进度")
-    parser.add_argument('path', nargs='?', default='.', help='根目录路径，默认为当前目录')
-    parser.add_argument('--csv', default='progress_report.csv', help='CSV 输出文件名')
-    parser.add_argument('--ext', help='自定义文件扩展名（用逗号分隔），如：.py,.js')
-    parser.add_argument('--exclude', help='排除目录（用逗号分隔），如：node_modules,dist,build')
+    parser = argparse.ArgumentParser(description="Analyze @progress annotations in code")
+    parser.add_argument('path', nargs='?', default='.', help='Root directory path (default: current directory)')
+    parser.add_argument('--csv', default='progress_report.csv', help='CSV output filename')
+    parser.add_argument('--ext', help='Custom file extensions (comma-separated), e.g. .py,.js')
+    parser.add_argument('--exclude', help='Exclude folders (comma-separated), e.g. node_modules,dist,build')
     return parser.parse_args()
 
 def main():
@@ -112,7 +112,7 @@ def main():
     print(tabulate(data, headers={'file': 'file', 'progress': 'progress', 'note': 'note'}, floatfmt=".2f"))
     summarize(data, unmarked_count)
     export_csv(data, args.csv)
-    print(f"\n解析耗时：{time.time() - start:.2f} 秒")
+    print(f"\nElapsed time: {time.time() - start:.2f} seconds")
 
 if __name__ == '__main__':
     main()
