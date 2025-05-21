@@ -1,6 +1,6 @@
 [project]
 name = "progtrack"
-version = "0.1.5"
+version = "0.1.6"
 description = "Track @progress comments across source code files"
 readme = "README.md"
 license = {text = "MIT"}
