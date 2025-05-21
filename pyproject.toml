@@ -1,0 +1,13 @@
+[project]
+name = "progtrack"
+version = "0.1.3"
+description = "Track @progress comments across source code files"
+readme = "README.md"
+license = {text = "MIT"}
+dependencies = ["tabulate"]
+
+[project.urls]
+"Source" = "https://github.com/shao-wang-me/progtrack"
+
+[project.scripts]
+progtracker = "progtrack.cli:main"

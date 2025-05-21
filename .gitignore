@@ -1,1 +1,7 @@
 progress_report.csv
+
+__pycache__/
+
+# build
+*.egg-info
+dist

@@ -94,7 +94,7 @@ def parse_args():
     parser.add_argument('--exclude', help='排除目录（用逗号分隔），如：node_modules,dist,build')
     return parser.parse_args()
 
-if __name__ == '__main__':
+def main():
     from tabulate import tabulate
 
     args = parse_args()
@@ -113,3 +113,6 @@ if __name__ == '__main__':
     summarize(data, unmarked_count)
     export_csv(data, args.csv)
     print(f"\n解析耗时：{time.time() - start:.2f} 秒")
+
+if __name__ == '__main__':
+    main()
